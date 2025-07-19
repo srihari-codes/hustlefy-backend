@@ -53,13 +53,17 @@ const updateProfile = async (req, res) => {
       });
     }
 
-    // Update fields
+    // Always update name and phone
     if (name) user.name = name;
     if (phone !== undefined) user.phone = phone;
-    if (location) user.location = location;
-    if (role) user.role = role; // Add logic to update role
-    if (workCategories) user.workCategories = workCategories;
-    if (bio !== undefined) user.bio = bio;
+    if (role) user.role = role;
+
+    // Only update these fields if user is NOT a provider
+    if (user.role !== "provider") {
+      if (location) user.location = location;
+      if (workCategories) user.workCategories = workCategories;
+      if (bio !== undefined) user.bio = bio;
+    }
 
     await user.save();
 

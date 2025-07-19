@@ -42,11 +42,11 @@ router.post("/google", async (req, res) => {
         name,
         googleId,
         profilePicture,
-        role: "seeker",
         isEmailVerified: true,
+        // Do NOT set role or other info here!
       });
       await user.save();
-      isNewUser = true; // Mark as a new user
+      isNewUser = true;
     }
 
     const token = jwt.sign(
@@ -55,26 +55,27 @@ router.post("/google", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // Send response based on whether the user is new or existing
     const responseUser = {
       _id: user._id,
       email: user.email,
       name: user.name,
-      role: user.role,
       profilePicture: user.profilePicture,
       googleId: user.googleId,
+      // Do NOT include role, location, workCategories, bio for new users
     };
 
     if (!isNewUser) {
-      responseUser.location = user.location; // Include location only for existing users
+      responseUser.role = user.role;
+      responseUser.location = user.location;
       if (user.role === "seeker") {
-        responseUser.workCategories = user.workCategories || []; // Include workCategories for seeker profiles
+        responseUser.workCategories = user.workCategories || [];
       }
     }
 
     res.json({
       token,
       user: responseUser,
+      isNewUser,
     });
   } catch (error) {
     console.error("Google auth error:", error);
