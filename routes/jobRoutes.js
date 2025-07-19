@@ -90,4 +90,7 @@ router.post(
 );
 router.get("/my/applications", roleMiddleware(["seeker"]), getMyApplications);
 
+// Get all applications by the logged-in user
+router.get("/user/applications", authMiddleware, getMyApplications);
+
 module.exports = router;
