@@ -1,5 +1,5 @@
-const { validationResult } = require('express-validator');
-const User = require('../models/User');
+const { validationResult } = require("express-validator");
+const User = require("../models/User");
 
 // @desc    Get user profile
 // @route   GET /api/profile
@@ -7,23 +7,23 @@ const User = require('../models/User');
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
     res.json({
       success: true,
-      data: user
+      data: user,
     });
   } catch (error) {
-    console.error('Get profile error:', error);
+    console.error("Get profile error:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: "Server error",
     });
   }
 };
@@ -37,19 +37,19 @@ const updateProfile = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: 'Validation failed',
-        errors: errors.array()
+        message: "Validation failed",
+        errors: errors.array(),
       });
     }
 
-    const { name, phone, location, workCategories, bio } = req.body;
+    const { name, phone, location, role, workCategories, bio } = req.body;
 
     const user = await User.findById(req.user.id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
@@ -57,6 +57,7 @@ const updateProfile = async (req, res) => {
     if (name) user.name = name;
     if (phone !== undefined) user.phone = phone;
     if (location) user.location = location;
+    if (role) user.role = role; // Add logic to update role
     if (workCategories) user.workCategories = workCategories;
     if (bio !== undefined) user.bio = bio;
 
@@ -64,19 +65,19 @@ const updateProfile = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Profile updated successfully',
-      data: user
+      message: "Profile updated successfully",
+      data: user,
     });
   } catch (error) {
-    console.error('Update profile error:', error);
+    console.error("Update profile error:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: "Server error",
     });
   }
 };
 
 module.exports = {
   getProfile,
-  updateProfile
+  updateProfile,
 };
