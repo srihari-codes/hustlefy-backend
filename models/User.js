@@ -39,11 +39,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    location: {
-      type: String,
-      required: [false, "Location is optional"],
-      trim: true,
-    },
     workCategories: [
       {
         type: String,

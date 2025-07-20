@@ -42,7 +42,8 @@ const updateProfile = async (req, res) => {
       });
     }
 
-    const { name, phone, location, role, workCategories, bio } = req.body;
+    // Remove location from destructuring
+    const { name, phone, role, workCategories, bio } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -60,9 +61,9 @@ const updateProfile = async (req, res) => {
 
     // Only update these fields if user is NOT a provider
     if (user.role !== "provider") {
-      if (location) user.location = location;
       if (workCategories) user.workCategories = workCategories;
       if (bio !== undefined) user.bio = bio;
+      // location is now removed
     }
 
     await user.save();
