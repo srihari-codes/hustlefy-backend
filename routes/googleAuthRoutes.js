@@ -50,7 +50,12 @@ router.post("/google", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
+      {
+        id: user._id, // Changed from userId to id
+        email: user.email,
+        name: user.name, // Added missing name field
+        role: user.role || null,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -64,11 +69,16 @@ router.post("/google", async (req, res) => {
       // Do NOT include role, location, workCategories, bio for new users
     };
 
+    // For Google login route
     if (!isNewUser) {
       responseUser.role = user.role;
       responseUser.location = user.location;
       if (user.role === "seeker") {
         responseUser.workCategories = user.workCategories || [];
+        responseUser.bio = user.bio || "";
+        responseUser.phone = user.phone || "";
+      } else if (user.role === "provider") {
+        responseUser.phone = user.phone || ""; // Add phone for providers
       }
     }
 
@@ -87,22 +97,24 @@ router.get("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    console.log("pass 0");
     // Check if user exists and has a password
     if (!user || !user.password) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    console.log("pass 1");
     // Validate password
     const isValidPassword = await user.comparePassword(password);
     if (!isValidPassword) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    console.log("pass 2");
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
+      {
+        id: user._id, // Changed from userId to id
+        email: user.email,
+        name: user.name, // Added missing name field
+        role: user.role || null,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -117,8 +129,13 @@ router.get("/login", async (req, res) => {
       googleId: user.googleId,
     };
 
+    // For regular login route
     if (user.role === "seeker") {
-      responseUser.workCategories = user.workCategories || []; // Include workCategories for seeker profiles
+      responseUser.workCategories = user.workCategories || [];
+      responseUser.bio = user.bio || "";
+      responseUser.phone = user.phone || "";
+    } else if (user.role === "provider") {
+      responseUser.phone = user.phone || ""; // Add phone for providers
     }
 
     res.json({

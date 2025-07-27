@@ -3,10 +3,19 @@ const { validationResult } = require("express-validator");
 const User = require("../models/User");
 
 // Generate JWT Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
-  });
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role || null,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRE,
+    }
+  );
 };
 
 // @desc    Register user
@@ -56,7 +65,7 @@ const register = async (req, res) => {
     });
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user); // Pass user object instead of just ID
 
     res.status(201).json({
       success: true,
@@ -110,7 +119,7 @@ const login = async (req, res) => {
     }
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user); // Pass user object instead of just ID
 
     // Remove password from response
     user.password = undefined;

@@ -76,9 +76,18 @@ exports.verifyOtp = async (req, res) => {
       });
 
       // Generate JWT token
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE || "7d",
-      });
+      const token = jwt.sign(
+        {
+          id: user._id, // ← Changed from userId to id
+          email: user.email,
+          name: user.name || null, // ← Added missing name field
+          role: user.role || null,
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: process.env.JWT_EXPIRE || "7d",
+        }
+      );
 
       return res.status(201).json({
         success: true,
@@ -91,9 +100,18 @@ exports.verifyOtp = async (req, res) => {
       await User.findOneAndUpdate({ email }, { isEmailVerified: true });
 
       // Generate JWT token
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE || "7d",
-      });
+      const token = jwt.sign(
+        {
+          id: user._id, // ← Changed from userId to id
+          email: user.email,
+          name: user.name || null, // ← Added missing name field
+          role: user.role || null,
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: process.env.JWT_EXPIRE || "7d",
+        }
+      );
 
       return res.status(200).json({
         success: true,
