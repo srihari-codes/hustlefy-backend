@@ -11,13 +11,28 @@ connectDB();
 
 const app = express();
 
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains"
+    );
+  }
+  next();
+});
 // Middleware
 app.use(
   cors({
-    origin: "*", // Allow all origins temporarily
+    origin: process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
+      : "*",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allow specific methods
-    allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -41,7 +56,7 @@ app.use("/api/jobs", require("./routes/jobRoutes"));
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "QuickWork API is running",
+    message: "hustlefy API is running",
     timestamp: new Date().toISOString(),
   });
 });
@@ -58,9 +73,15 @@ app.use("*", (req, res) => {
 app.use((err, req, res, next) => {
   console.error("Global error handler:", err);
 
+  // Don't leak error details in production
+  const message =
+    process.env.NODE_ENV === "production"
+      ? "Something went wrong!"
+      : err.message || "Internal server error";
+
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || "Internal server error",
+    message,
     ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 });

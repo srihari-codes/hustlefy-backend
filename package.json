@@ -1,11 +1,12 @@
 {
-  "name": "quickwork-backend",
+  "name": "hustlefy-backend",
   "version": "1.0.0",
-  "description": "Backend API for QuickWork job platform",
+  "description": "Backend API for hustlefy job platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "build": "echo 'No build step required for Node.js'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

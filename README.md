@@ -1,6 +1,6 @@
-# QuickWork Backend API
+# hustlefy Backend API
 
-A complete backend API for the QuickWork job platform built with Node.js, Express, and MongoDB.
+A complete backend API for the hustlefy job platform built with Node.js, Express, and MongoDB.
 
 ## Features
 
@@ -32,7 +32,7 @@ npm install
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/quickwork
+MONGODB_URI=mongodb://localhost:27017/hustlefy
 JWT_SECRET=your_super_secret_jwt_key_here
 JWT_EXPIRE=7d
 NODE_ENV=development
