@@ -7,17 +7,24 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [false, "Name is optional"],
       trim: true,
-      maxlength: [100, "Name cannot exceed 100 characters"],
+      maxlength: [50, "Name cannot exceed 50 characters"],
+      validate: {
+        validator: function (v) {
+          if (!v) return true; // Optional field
+          // Only letters, spaces, hyphens, apostrophes
+          return /^[a-zA-Z\s\-']+$/.test(v);
+        },
+        message:
+          "Name can only contain letters, spaces, hyphens, and apostrophes",
+      },
     },
     email: {
       type: String,
       required: [true, "Email is required"],
       unique: true,
       lowercase: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        "Please enter a valid email",
-      ],
+      trim: true,
+      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please enter a valid email"],
     },
     password: {
       type: String,
@@ -29,7 +36,7 @@ const userSchema = new mongoose.Schema(
     googleId: {
       type: String,
       unique: true,
-      sparse: true, // Allows null values to be non-unique
+      sparse: true,
     },
     isEmailVerified: {
       type: Boolean,
@@ -38,32 +45,66 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       trim: true,
-    },
-    workCategories: [
-      {
-        type: String,
-        enum: [
-          "Setup & Events",
-          "Cleaning",
-          "Logistics & Warehouse",
-          "Food Service",
-          "Heavy Lifting",
-          "Maintenance",
-          "Landscaping",
-          "Administrative",
-          "Customer Service",
-          "Delivery",
-        ],
+      validate: {
+        validator: function (v) {
+          if (!v) return true; // Optional field
+          // E.164 format validation
+          return /^\+[1-9]\d{1,14}$/.test(v);
+        },
+        message: "Phone must be in E.164 format (e.g., +1234567890)",
       },
-    ],
+    },
+    workCategories: {
+      type: [String],
+      enum: [
+        "Setup & Events",
+        "Cleaning",
+        "Logistics & Warehouse",
+        "Food Service",
+        "Heavy Lifting",
+        "Maintenance",
+        "Landscaping",
+        "Administrative",
+        "Customer Service",
+        "Delivery",
+      ],
+      validate: {
+        validator: function (categories) {
+          // Required only for seekers
+          if (this.role === "seeker") {
+            return categories && categories.length > 0;
+          }
+          // For providers, should be empty or undefined
+          return !categories || categories.length === 0;
+        },
+        message:
+          "Work categories are required for seekers and must be non-empty",
+      },
+    },
     bio: {
       type: String,
-      maxlength: [500, "Bio cannot exceed 500 characters"],
+      maxlength: [300, "Bio cannot exceed 300 characters"],
+      validate: {
+        validator: function (bio) {
+          // Required only for seekers
+          if (this.role === "seeker") {
+            return bio && bio.trim().length > 0;
+          }
+          // For providers, should be empty or undefined
+          return !bio || bio.trim().length === 0;
+        },
+        message: "Bio is required for seekers",
+      },
+      set: function (bio) {
+        if (!bio) return bio;
+        // Strip HTML tags
+        return bio.replace(/<[^>]*>/g, "").trim();
+      },
     },
     role: {
       type: String,
       enum: ["provider", "seeker"],
-      required: [false, "Role is optional"],
+      required: [true, "Role is required"],
     },
     profilePicture: {
       type: String,
