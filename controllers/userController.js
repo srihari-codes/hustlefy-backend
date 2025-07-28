@@ -56,31 +56,34 @@ const updateProfile = async (req, res) => {
     // Update basic fields
     if (name !== undefined) user.name = name;
     if (phone !== undefined) {
-      // Normalize phone to E.164 format if provided
       user.phone = phone ? phone.replace(/\s+/g, "") : phone;
     }
-    if (role) user.role = role;
 
-    // Role-specific validations
-    if (role === "seeker") {
-      if (!workCategories || workCategories.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Work categories are required for seekers",
-        });
+    // Role is required for full profile completion
+    if (role) {
+      user.role = role;
+
+      // Role-specific validations
+      if (role === "seeker") {
+        if (!workCategories || workCategories.length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Work categories are required for seekers",
+          });
+        }
+        if (!bio || bio.trim().length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Bio is required for seekers",
+          });
+        }
+        user.workCategories = workCategories;
+        user.bio = bio;
+      } else if (role === "provider") {
+        // Clear seeker-specific fields for providers
+        user.workCategories = [];
+        user.bio = "";
       }
-      if (!bio || bio.trim().length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Bio is required for seekers",
-        });
-      }
-      user.workCategories = workCategories;
-      user.bio = bio;
-    } else if (role === "provider") {
-      // Clear seeker-specific fields for providers
-      user.workCategories = [];
-      user.bio = "";
     }
 
     await user.save();
@@ -91,7 +94,7 @@ const updateProfile = async (req, res) => {
         id: user._id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: user.role, // This might be undefined initially
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRE || "7d" }
@@ -122,7 +125,13 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// Add a helper function to check if user profile is complete
+const isProfileComplete = (user) => {
+  return !!(user.name && user.role && user.email);
+};
+
 module.exports = {
   getProfile,
   updateProfile,
+  isProfileComplete,
 };

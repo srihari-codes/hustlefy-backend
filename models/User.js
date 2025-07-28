@@ -70,6 +70,9 @@ const userSchema = new mongoose.Schema(
       ],
       validate: {
         validator: function (categories) {
+          // Only validate if role is set
+          if (!this.role) return true; // Skip validation if role not set yet
+
           // Required only for seekers
           if (this.role === "seeker") {
             return categories && categories.length > 0;
@@ -86,6 +89,9 @@ const userSchema = new mongoose.Schema(
       maxlength: [300, "Bio cannot exceed 300 characters"],
       validate: {
         validator: function (bio) {
+          // Only validate if role is set
+          if (!this.role) return true; // Skip validation if role not set yet
+
           // Required only for seekers
           if (this.role === "seeker") {
             return bio && bio.trim().length > 0;
@@ -104,7 +110,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ["provider", "seeker"],
-      required: [true, "Role is required"],
+      required: [false, "Role will be set during onboarding"], // Make it optional initially
     },
     profilePicture: {
       type: String,
