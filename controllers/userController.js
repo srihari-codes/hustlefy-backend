@@ -59,12 +59,12 @@ const updateProfile = async (req, res) => {
       user.phone = phone ? phone.replace(/\s+/g, "") : phone;
     }
 
-    // Role is required for full profile completion
-    if (role) {
+    // Handle role updates
+    if (role !== undefined) {
       user.role = role;
 
-      // Role-specific validations
       if (role === "seeker") {
+        // Validate seeker requirements
         if (!workCategories || workCategories.length === 0) {
           return res.status(400).json({
             success: false,
@@ -84,8 +84,42 @@ const updateProfile = async (req, res) => {
         user.workCategories = [];
         user.bio = "";
       }
+    } else {
+      // Handle updates when role is not changing
+      if (user.role === "seeker") {
+        // Update workCategories if provided
+        if (workCategories !== undefined) {
+          if (!workCategories || workCategories.length === 0) {
+            return res.status(400).json({
+              success: false,
+              message: "Work categories are required for seekers",
+            });
+          }
+          user.workCategories = workCategories;
+        }
+
+        // Update bio if provided
+        if (bio !== undefined) {
+          if (!bio || bio.trim().length === 0) {
+            return res.status(400).json({
+              success: false,
+              message: "Bio is required for seekers",
+            });
+          }
+          user.bio = bio;
+        }
+      } else if (user.role === "provider") {
+        // Providers can't have workCategories or bio
+        if (workCategories !== undefined || bio !== undefined) {
+          return res.status(400).json({
+            success: false,
+            message: "Providers cannot have work categories or bio",
+          });
+        }
+      }
     }
 
+    // Save the user
     await user.save();
 
     // Generate new token with updated user data
@@ -94,7 +128,7 @@ const updateProfile = async (req, res) => {
         id: user._id,
         email: user.email,
         name: user.name,
-        role: user.role, // This might be undefined initially
+        role: user.role,
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRE || "7d" }
@@ -127,7 +161,17 @@ const updateProfile = async (req, res) => {
 
 // Add a helper function to check if user profile is complete
 const isProfileComplete = (user) => {
-  return !!(user.name && user.role && user.email);
+  if (!user.name || !user.role || !user.email) return false;
+
+  if (user.role === "seeker") {
+    return !!(
+      user.workCategories &&
+      user.workCategories.length > 0 &&
+      user.bio
+    );
+  }
+
+  return true; // Providers only need name, role, email
 };
 
 module.exports = {

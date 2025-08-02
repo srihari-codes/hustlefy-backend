@@ -21,12 +21,12 @@ const router = express.Router();
 const createJobValidation = [
   body("title")
     .trim()
-    .isLength({ min: 5, max: 200 })
-    .withMessage("Title must be between 5 and 200 characters"),
+    .isLength({ min: 5, max: 50 }) // Changed from max: 200 to max: 50
+    .withMessage("Title must be between 5 and 50 characters"),
   body("description")
     .trim()
-    .isLength({ min: 20, max: 2000 })
-    .withMessage("Description must be between 20 and 2000 characters"),
+    .isLength({ min: 20, max: 500 }) // Changed from max: 2000 to max: 500
+    .withMessage("Description must be between 20 and 500 characters"),
   body("location").trim().notEmpty().withMessage("Location is required"),
   body("category")
     .isIn([
@@ -54,8 +54,8 @@ const createJobValidation = [
 const applyJobValidation = [
   body("message")
     .optional()
-    .isLength({ max: 1000 })
-    .withMessage("Message cannot exceed 1000 characters"),
+    .isLength({ max: 250 }) // Changed from max: 1000 to max: 250
+    .withMessage("Message cannot exceed 250 characters"),
 ];
 
 // Public routes

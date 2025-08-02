@@ -68,39 +68,12 @@ const userSchema = new mongoose.Schema(
         "Customer Service",
         "Delivery",
       ],
-      validate: {
-        validator: function (categories) {
-          // Only validate if role is set
-          if (!this.role) return true; // Skip validation if role not set yet
-
-          // Required only for seekers
-          if (this.role === "seeker") {
-            return categories && categories.length > 0;
-          }
-          // For providers, should be empty or undefined
-          return !categories || categories.length === 0;
-        },
-        message:
-          "Work categories are required for seekers and must be non-empty",
-      },
+      // Remove the custom validator - we'll handle this in the controller
     },
     bio: {
       type: String,
       maxlength: [300, "Bio cannot exceed 300 characters"],
-      validate: {
-        validator: function (bio) {
-          // Only validate if role is set
-          if (!this.role) return true; // Skip validation if role not set yet
-
-          // Required only for seekers
-          if (this.role === "seeker") {
-            return bio && bio.trim().length > 0;
-          }
-          // For providers, should be empty or undefined
-          return !bio || bio.trim().length === 0;
-        },
-        message: "Bio is required for seekers",
-      },
+      // Remove the custom validator - we'll handle this in the controller
       set: function (bio) {
         if (!bio) return bio;
         // Strip HTML tags
