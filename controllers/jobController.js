@@ -3,6 +3,9 @@ const Job = require("../models/Job");
 const Application = require("../models/Application");
 const User = require("../models/User");
 const nodemailer = require("nodemailer");
+const {
+  getJobAcceptanceEmailTemplate,
+} = require("../templates/jobAcceptanceEmailTemplate");
 
 // @desc    Get all jobs (public)
 // @route   GET /api/jobs
@@ -309,28 +312,7 @@ const acceptApplicant = async (req, res) => {
     // Fetch seeker details
     const seeker = await User.findById(application.seekerId);
 
-    // Prepare email content
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: seeker.email,
-      subject: `Welcome to "${job.title}" job!`,
-      text: `
-Congratulations, you have been accepted for the job "${job.title}"!
-
-Job Details:
-- Title: ${job.title}
-- Payment: ${job.payment}
-- Provider Email: ${provider.email}
-${provider.phone ? `- Provider Phone: ${provider.phone}` : ""}
-
-We are excited to have you onboard. Please reach out to the provider for further instructions.
-
-Best regards,
-The Hustlefy Team
-      `,
-    };
-
-    // Send email
+    // Send email with beautiful HTML template
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -339,7 +321,15 @@ The Hustlefy Team
       },
     });
 
-    await transporter.sendMail(mailOptions);
+    const htmlContent = getJobAcceptanceEmailTemplate(job, provider, seeker);
+
+    await transporter.sendMail({
+      from: `"Hustlefy Team" <${process.env.EMAIL_USER}>`,
+      to: seeker.email,
+      subject: `🎉 You're Hired! Welcome to "${job.title}"`,
+      html: htmlContent,
+      text: `Congratulations! You have been accepted for the job "${job.title}". Contact ${provider.email} for next steps.`, // Fallback text
+    });
 
     res.json({
       success: true,
