@@ -3,6 +3,7 @@ const nodemailer = require("nodemailer");
 const OTP = require("../models/OTP");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const { getOtpEmailTemplate } = require("../templates/otpEmailTemplate");
 
 // Send OTP
 exports.sendOtp = async (req, res) => {
@@ -25,7 +26,7 @@ exports.sendOtp = async (req, res) => {
     const expiration = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     await OTP.create({ email, otp, expiration });
 
-    // Send OTP via email
+    // Send OTP via email with HTML template
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -34,17 +35,26 @@ exports.sendOtp = async (req, res) => {
       },
     });
 
+    const htmlContent = getOtpEmailTemplate(otp, email);
+
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"Hustlefy Team" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Your OTP Code",
-      text: `Your OTP code is ${otp}. It will expire in 10 minutes.`,
+      subject: "Your HUSTLEFY verification code",
+      html: htmlContent, // Use HTML instead of text
+      text: `Your OTP code is ${otp}. It will expire in 10 minutes.`, // Fallback text
     });
 
-    res.status(200).json({ success: true, message: "OTP sent successfully" });
+    res.status(200).json({
+      success: true,
+      message: "OTP sent successfully to your email",
+    });
   } catch (error) {
     console.error("Send OTP error:", error);
-    res.status(500).json({ success: false, message: "Failed to send OTP" });
+    res.status(500).json({
+      success: false,
+      message: "Failed to send OTP. Please try again.",
+    });
   }
 };
 
