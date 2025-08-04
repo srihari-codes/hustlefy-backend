@@ -53,7 +53,7 @@ const updateProfile = async (req, res) => {
       });
     }
 
-    // Update basic fields
+    // Update basic fields (available to both providers and seekers)
     if (name !== undefined) user.name = name;
     if (phone !== undefined) {
       user.phone = phone ? phone.replace(/\s+/g, "") : phone;
@@ -109,13 +109,22 @@ const updateProfile = async (req, res) => {
           user.bio = bio;
         }
       } else if (user.role === "provider") {
-        // Providers can't have workCategories or bio
-        if (workCategories !== undefined || bio !== undefined) {
+        // Providers can only update workCategories and bio if they're trying to set them (which is not allowed)
+        if (workCategories !== undefined && workCategories.length > 0) {
           return res.status(400).json({
             success: false,
-            message: "Providers cannot have work categories or bio",
+            message: "Providers cannot have work categories",
           });
         }
+        if (bio !== undefined && bio.trim().length > 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Providers cannot have a bio",
+          });
+        }
+        // Clear these fields if they somehow exist
+        if (workCategories !== undefined) user.workCategories = [];
+        if (bio !== undefined) user.bio = "";
       }
     }
 

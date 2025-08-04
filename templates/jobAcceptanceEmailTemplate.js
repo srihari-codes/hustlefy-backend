@@ -444,7 +444,7 @@ const getJobAcceptanceEmailTemplate = (job, provider, seeker) => {
 
           <div class="detail-item">
             <span class="detail-label">💰 Payment</span>
-            <span class="payment-highlight">$${job.payment}</span>
+            <span class="payment-highlight">₹${job.payment}</span>
           </div>
         </div>
 
